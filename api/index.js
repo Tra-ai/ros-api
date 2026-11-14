@@ -3,7 +3,7 @@ const express = require('express');
 const crypto = require('crypto');
 const db = require('../lib/db');
 const { hashPassword, verifyPassword } = require('../lib/password');
-const { adminLoginPage, adminDashboardPage } = require('../lib/pages');
+const { adminLoginPage, adminDashboardPage, registerPage, loginPage, successPage } = require('../lib/pages');
 
 const app = express();
 const SECRET = process.env.TOKEN_SECRET || 'change-me';
@@ -96,6 +96,52 @@ app.post('/admin/delete-user', requireAdmin, async (req, res) => {
     await db.query('DELETE FROM ros_users WHERE id = $1', [req.body.id]);
   } catch (e) { /* ignore */ }
   res.redirect('/admin/dashboard');
+});
+
+
+// ---------- in-game sign-in / create account pages (loaded by the APK webview) ----------
+app.get('/register', (req, res) => {
+  res.send(registerPage({ client: req.query.client }));
+});
+
+app.post('/register', async (req, res) => {
+  const client = req.query.client || req.body.client;
+  const username = (req.body.username || '').trim();
+  const email = (req.body.email || '').trim() || null;
+  const password = req.body.password || '';
+  try {
+    if (username.length < 3 || password.length < 6) {
+      throw new Error('Username (3+) and password (6+) are required.');
+    }
+    await db.query(
+      'INSERT INTO ros_users (username, email, password_hash) VALUES ($1,$2,$3)',
+      [username, email, hashPassword(password)]
+    );
+    res.send(registerPage({ ok: true, client }));
+  } catch (e) {
+    const msg = /duplicate key/i.test(e.message) ? 'That username is already taken.' : e.message;
+    res.status(400).send(registerPage({ error: msg, client }));
+  }
+});
+
+app.get('/login', (req, res) => {
+  res.send(loginPage({ client: req.query.client }));
+});
+
+app.post('/login', async (req, res) => {
+  const client = req.query.client || req.body.client;
+  const username = (req.body.username || '').trim();
+  const password = req.body.password || '';
+  try {
+    const r = await db.query('SELECT * FROM ros_users WHERE username = $1', [username]);
+    const user = r.rows[0];
+    if (!user || !verifyPassword(password, user.password_hash)) {
+      throw new Error('Incorrect username or password.');
+    }
+    res.send(successPage(user.username));
+  } catch (e) {
+    res.status(400).send(loginPage({ error: e.message, client }));
+  }
 });
 
 const sign = (uid) => {
