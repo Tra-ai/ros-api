@@ -22,7 +22,6 @@ app.use((req, res, next) => {
 const ok = (data = {}) => ({ code: 0, status: 'ok', ...data });
 const fail = (msg) => ({ code: 1, status: 'error', message: msg });
 
-// ---------- tiny cookie helpers (no extra dependency) ----------
 function parseCookies(req) {
   const out = {};
   (req.headers.cookie || '').split(';').forEach((part) => {
@@ -40,7 +39,6 @@ function requireAdmin(req, res, next) {
   res.redirect('/admin');
 }
 
-// ---------- admin auth ----------
 app.get('/admin', (req, res) => {
   if (!ADMIN_PASSWORD) return res.status(500).send('ADMIN_PASSWORD is not set on the server.');
   const cookies = parseCookies(req);
@@ -62,7 +60,6 @@ app.post('/admin/logout', (req, res) => {
   res.redirect('/admin');
 });
 
-// ---------- admin dashboard ----------
 app.get('/admin/dashboard', requireAdmin, async (req, res) => {
   try {
     const r = await db.query('SELECT id, username, email, created_at FROM ros_users ORDER BY id DESC');
@@ -100,7 +97,6 @@ app.post('/admin/delete-user', requireAdmin, async (req, res) => {
   res.redirect('/admin/dashboard');
 });
 
-// ---------- stateless game ticket ----------
 const sign = (uid) => {
   const p = Buffer.from(uid).toString('base64url');
   const h = crypto.createHmac('sha256', SECRET).update(p).digest('hex').slice(0, 32);
@@ -114,7 +110,6 @@ const verifyTicket = (t) => {
 };
 const newUid = () => crypto.randomBytes(4).toString('hex');
 
-// ---------- game client endpoints (accounts created by the admin) ----------
 app.post('/v2/ros/login_mobile_v2', async (req, res) => {
   const username = (req.body.username || req.body.account || '').trim();
   const password = req.body.password;
