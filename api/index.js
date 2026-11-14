@@ -13,6 +13,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
   console.log('REQ', JSON.stringify({
     method: req.method, url: req.originalUrl, headers: req.headers, body: req.body,
   }));
