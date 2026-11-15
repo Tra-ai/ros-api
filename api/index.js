@@ -218,8 +218,27 @@ app.get('/android/version.json', (req, res) => {
   });
 });
 
-app.get(/\.manifest\.json$/, (req, res) => res.status(404).end());
-app.get(/\/android\/(main|patch)\.obb$/, (req, res) => res.status(404).end());
+const OBB = {
+  main: {
+    size: 2140245031,
+    sha256: 'dc17e374ae07cb679d2b9a24077d27d6b5ee2eb876f1f5f3e78b64364a24a2df',
+    url: 'https://github.com/Tra-ai/ros-patch/releases/download/obb/main.1227927.com.netease.chiji.obb',
+  },
+  patch: {
+    size: 2016578296,
+    sha256: '973beb2c2f9d8a2a984cf0ba0ab90096f3c423cf3d360ddd84ae517d88aee534',
+    url: 'https://github.com/Tra-ai/ros-patch/releases/download/obb/patch.1227927.com.netease.chiji.obb',
+  },
+};
+
+app.get('/android/main.obb.manifest.json', (req, res) => {
+  res.status(200).json({ size: OBB.main.size, sha256: OBB.main.sha256 });
+});
+app.get('/android/patch.obb.manifest.json', (req, res) => {
+  res.status(200).json({ size: OBB.patch.size, sha256: OBB.patch.sha256 });
+});
+app.get('/android/main.obb', (req, res) => res.redirect(302, OBB.main.url));
+app.get('/android/patch.obb', (req, res) => res.redirect(302, OBB.patch.url));
 
 app.all('*', (req, res) => res.json(ok()));
 
