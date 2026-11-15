@@ -240,8 +240,16 @@ app.get('/android/patch.obb.manifest.json', (req, res) => {
 app.get('/android/main.obb', (req, res) => res.redirect(302, OBB.main.url));
 app.get('/android/patch.obb', (req, res) => res.redirect(302, OBB.patch.url));
 
-app.get(/\/android\/res\/.*\.npk(\.manifest)?$/, (req, res) => res.status(404).end());
-app.get(/\/android\/res\/.*\.manifest\.json$/, (req, res) => res.status(404).end());
+const DLC_SHA = '6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d';
+const dlcManifest = (req, res) => res.status(200).json({ size: 1, sha256: DLC_SHA });
+const dlcFile = (req, res) => {
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.status(200).send(Buffer.from([0]));
+};
+app.get('/android/res/dlc8k.npk.manifest.json', dlcManifest);
+app.get('/android/res/dlcfps.npk.manifest.json', dlcManifest);
+app.get('/android/res/dlc8k.npk', dlcFile);
+app.get('/android/res/dlcfps.npk', dlcFile);
 
 app.all('*', (req, res) => res.json(ok()));
 
