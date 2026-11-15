@@ -240,6 +240,9 @@ app.get('/android/patch.obb.manifest.json', (req, res) => {
 app.get('/android/main.obb', (req, res) => res.redirect(302, OBB.main.url));
 app.get('/android/patch.obb', (req, res) => res.redirect(302, OBB.patch.url));
 
+app.get(/\/android\/res\/.*\.npk(\.manifest)?$/, (req, res) => res.status(404).end());
+app.get(/\/android\/res\/.*\.manifest\.json$/, (req, res) => res.status(404).end());
+
 app.all('*', (req, res) => res.json(ok()));
 
 module.exports = app;
