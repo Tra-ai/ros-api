@@ -218,6 +218,9 @@ app.get('/android/version.json', (req, res) => {
   });
 });
 
+app.get(/\.manifest\.json$/, (req, res) => res.status(404).end());
+app.get(/\/android\/(main|patch)\.obb$/, (req, res) => res.status(404).end());
+
 app.all('*', (req, res) => res.json(ok()));
 
 module.exports = app;
