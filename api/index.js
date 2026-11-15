@@ -165,17 +165,17 @@ app.post('/v2/ros/login_mobile_v2', async (req, res) => {
       const r = await db.query('SELECT * FROM ros_users WHERE username = $1', [username]);
       const user = r.rows[0];
       if (user && verifyPassword(password, user.password_hash)) {
-        const ticket = sign(`u:${user.id}`);
-        return res.json(ok({ uid: user.id, ticket, token: ticket, session: ticket }));
+        const session = sign(`u:${user.id}`);
+        return res.status(200).json({ success: true, session, username: user.username, uid: user.id });
       }
-      return res.status(401).json(fail('Incorrect username or password.'));
+      return res.status(200).json({ success: false, message: 'Incorrect username or password.' });
     } catch (e) {
-      return res.status(500).json(fail('Server error.'));
+      return res.status(200).json({ success: false, message: 'Server error.' });
     }
   }
   const uid = username || newUid();
-  const ticket = sign(uid);
-  res.json(ok({ uid, ticket, token: ticket, session: ticket }));
+  const session = sign(uid);
+  res.status(200).json({ success: true, session, username: uid, uid });
 });
 
 app.post('/v2/account/rosl/exchangeTicket', (req, res) => {
