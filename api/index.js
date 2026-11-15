@@ -207,6 +207,17 @@ app.get('/v2/ros/online-count', (req, res) => res.json(ok({ count: 0 })));
 app.post('/v2/ros/ac/report', (req, res) => res.json(ok()));
 app.all('/v2/ros/ac/device/status', (req, res) => res.json(ok({ banned: false })));
 
+app.get('/android/version.json', (req, res) => {
+  res.status(200).json({
+    build: 1,
+    min: 0,
+    size: 1,
+    apk: 'legacy/noop.apk',
+    sha256: '0'.repeat(64),
+    notes: ''
+  });
+});
+
 app.all('*', (req, res) => res.json(ok()));
 
 module.exports = app;
