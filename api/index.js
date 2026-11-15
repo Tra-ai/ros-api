@@ -193,14 +193,14 @@ app.post('/v2/ros/relaunch_v2', async (req, res) => {
   }
   const session = sign(uid);
   let username = uid;
-  const m = uid.match(/^u:(\\d+)$/);
+  const m = uid.match(/^u:(\d+)$/);
   if (m) {
     try {
       const r = await db.query('SELECT username FROM ros_users WHERE id = $1', [m[1]]);
       if (r.rows[0]) username = r.rows[0].username;
     } catch (e) { /* ignore */ }
   }
-  res.status(200).json({ success: true, session, username });
+  res.status(200).json({ success: true, session, username, auth: session });
 });
 app.post('/v2/ros/logout_v2', (req, res) => res.json(ok()));
 app.get('/v2/ros/online-count', (req, res) => res.json(ok({ count: 0 })));
