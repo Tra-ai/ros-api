@@ -178,11 +178,52 @@ app.post('/v2/ros/login_mobile_v2', async (req, res) => {
   res.status(200).json({ success: true, session, username: uid, uid });
 });
 
-app.post('/v2/account/rosl/exchangeTicket', (req, res) => {
-  const t = req.body.ticket || req.body.token;
-  const uid = verifyTicket(t) || newUid();
-  const ticket = sign(uid);
-  res.json(ok({ uid, ticket, token: ticket }));
+app.post('/v2/account/rosl/exchangeTicket', async (req, res) => {
+  try {
+    const t = req.body.ticket || req.body.token || '';
+    const uid = verifyTicket(t);
+
+    if (!uid) {
+      return res.status(200).json({
+        success: false,
+        message: 'Invalid or expired ticket.'
+      });
+    }
+
+    let username = uid;
+    const match = uid.match(/^u:(\\d+)$/);
+
+    if (match) {
+      const result = await db.query(
+        'SELECT username FROM ros_users WHERE id = $1',
+        [match[1]]
+      );
+
+      if (!result.rows[0]) {
+        return res.status(200).json({
+          success: false,
+          message: 'Account not found.'
+        });
+      }
+
+      username = result.rows[0].username;
+    }
+
+    const rosToken = sign(uid);
+
+    return res.status(200).json({
+      success: true,
+      username,
+      ros_token: rosToken
+    });
+  } catch (error) {
+    console.error('Exchange error:', error.message);
+
+    return res.status(200).json({
+      success: false,
+      message: 'Exchange service error.'
+    });
+  }
 });
 
 app.post('/v2/ros/relaunch_v2', async (req, res) => {
