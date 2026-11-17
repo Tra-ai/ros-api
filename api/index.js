@@ -191,7 +191,7 @@ app.post('/v2/account/rosl/exchangeTicket', async (req, res) => {
     }
 
     let username = uid;
-    const match = uid.match(/^u:(\\d+)$/);
+    const match = uid.match(/^u:(\d+)$/);
 
     if (match) {
       const result = await db.query(
